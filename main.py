@@ -1,90 +1,127 @@
+#!/usr/bin/python3
 import psycopg2
 import os
 import pandas as pd
 from datetime import datetime
 import logging
 
-logging.basicConfig(level=logging.INFO, filename=f"pdf_log_{datetime.now().date()}.log",
+
+# настройка логирования
+logging.basicConfig(level=logging.INFO, filename=f"./logs/{datetime.now().date()}.log",
                     format="%(asctime)s %(levelname)s %(message)s")
 
+# глобальные переменные
+STAGE_TABLES = ["DE12.buma_stg_transactions", "DE12.buma_stg_terminals",
+                "DE12.buma_stg_passport_blacklist", "DE12.buma_stg_accounts",
+                "DE12.buma_stg_cards", "DE12.buma_stg_clients"]
 
-def get_data_from_exel(path: str, sheet: str):
-    """
-    :param path: file path
-    :param sheet: name exel sheet
-    :return: dataframe from exel sheet or error
-    """
+
+def clear_tables(cursor, tables):
+    for table in tables:
+        try:
+            cursor.execute(f"DELETE FROM {table}")
+            logging.info(f"Очистка таблицы {table}")
+        except Exception as e:
+            logging.error(f"Ошибка очистки таблицы {table}: {e}")
+
+
+def get_data_from_exel(path: str):
     if path and os.path.isfile(path):
         try:
-            dataframe = pd.read_excel(path, sheet_name=sheet, index_col=None, header=0)
+            dataframe = pd.read_excel(path, index_col=None, header=0)
             return dataframe
-        except Exception as error:
-            return f'File error: {error}'
+        except Exception as e:
+            logging.error(f"Ошибка работы с файлом {path}: {e}")
+            return None
     else:
         return 'Empty file'
 
 
-def write_data_to_exel(path: str, sheet: str, dataframe: pd.DataFrame):
-    """
-    :param path: file path
-    :param sheet: exel sheet name
-    :param dataframe: data to write
-    :return: True or error
-    """
-    try:
-        dataframe.to_excel(path, sheet_name=sheet, header=True, index=False)
-        return True
-    except Exception as error:
-        return f'Work with file error: {error}'
+logging.info(f"Старт скрипта")
+
+# Создание подключения к источнику
+conn_src = psycopg2.connect(database="bank",
+                            host="de-edu-db.chronosavant.ru",
+                            user=os.getenv('user1'),
+                            password=os.getenv('pass1'),
+                            port="5432")
+
+# Создание подключения к хранилищу
+conn_dwh = psycopg2.connect(database="edu",
+                            host="de-edu-db.chronosavant.ru",
+                            user=os.getenv('user2'),
+                            password=os.getenv('pass2'),
+                            port="5432")
+
+# Отключение автокоммита
+conn_src.autocommit = False
+conn_dwh.autocommit = False
+
+# Создание курсора
+cursor_src = conn_src.cursor()
+cursor_dwh = conn_dwh.cursor()
 
 
-def manipulation_with_data(mode: str):
-    try:
-        with psycopg2.connect(**PSQL_CONN) as connection:
-            print(f'{datetime.now()}: Start script and open connection')
-            connection.autocommit = False
-            cursor = connection.cursor()
+logging.info(f"Запуск очистки таблиц в Stage:")
+clear_tables(cursor_dwh, STAGE_TABLES)
 
-            print(f'{datetime.now()}: get data from exel(mode = sheet)')
-            df = get_data_from_exel('medicine.xlsx', mode)
 
-            print(f'{datetime.now()}: create temporary table')
-            cursor.execute("""DROP TABLE IF EXISTS de12.buma_med_results_temp """)
-            cursor.execute("""CREATE TABLE de12.buma_med_results_temp 
-                           ("Код пациента" int, "Анализ" text, "Значение" text)""")
+logging.info(f"Запуск загрузки данных из файлов в Stage:")
+logging.info(f"Загрузка из csv в Stage, de12.buma_stg_transaction")
+df = pd.read_csv('transactions_01032021.txt', delimiter=';')
+cursor_dwh.executemany("INSERT INTO de12.buma_stg_transactions(trans_id, trans_date, amount, card_num, oper_type,"
+                       " oper_result, terminal) VALUES( %s, %s, %s, %s, %s, %s, %s)", df.values.tolist())
 
-            print(f'{datetime.now()}: insert data in temporary table')
-            cursor.executemany("""INSERT INTO de12.buma_med_results_temp("Код пациента", "Анализ", "Значение")
-                               VALUES(%s, %s, %s)""", df.values.tolist())
-            connection.commit()
+logging.info(f"Загрузка из xlsx в Stage, de12.buma_stg_terminals")
+df = pd.read_excel('terminals_01032021.xlsx', index_col=None, header=0)
+cursor_dwh.executemany("INSERT INTO de12.buma_stg_terminals(terminal_id, terminal_type, terminal_city, "
+                       "terminal_address) VALUES( %s, %s, %s, %s)", df.values.tolist())
 
-            print(f'{datetime.now()}: create main table  de12.buma_med_results')
-            cursor.execute("""DROP TABLE IF EXISTS de12.buma_med_results """)
-            cursor.execute("""CREATE TABLE de12.buma_med_results 
-                           ("Телефон" text, "Имя" text, "Название анализа" text, "Заключение" text)""")
-            connection.commit()
+logging.info(f"Загрузка из xlsx в Stage, de12.buma_stg_passport_blacklist")
+df = pd.read_excel('passport_blacklist_01032021.xlsx', index_col=None, header=0)
+cursor_dwh.executemany("INSERT INTO de12.buma_stg_passport_blacklist"
+                       "(date, passport) VALUES( %s, %s)", df.values.tolist())
 
-            print(f'{datetime.now()}: send main request and write to main table')
-            cursor.execute(MAIN_SQL_REQUEST)
-            connection.commit()
 
-            print(f'{datetime.now()}: get data from main table')
-            if mode == 'hard':
-                cursor.execute(HARD_SQL_REQUEST)
-            else:
-                cursor.execute(EASY_SQL_REQUEST)
+logging.info(f"загрузка данных из источника в STAGE:")
+cursor_src.execute("""select * from info.accounts;""")
+for record in cursor_src:
+    cursor_dwh.execute("INSERT INTO de12.buma_stg_accounts VALUES(%s, %s, %s, %s, %s)", record)
 
-            print(f'{datetime.now()}: create dataframe and write to exel: {mode}.xlsx')
-            names = [x[0] for x in cursor.description]
-            df = pd.DataFrame(cursor.fetchall(), columns=names)
-            write_data_to_exel(f'{mode}.xlsx', mode, df)
+cursor_src.execute("""select * from info.cards;""")
+for record in cursor_src:
+    cursor_dwh.execute("INSERT INTO de12.buma_stg_cards VALUES(%s, %s, %s, %s)", record)
 
-            print(f'{datetime.now()}: clearing db')
-            cursor.execute("""DROP TABLE de12.buma_med_results_temp""")
-            if mode == 'easy':
-                cursor.execute("""DROP TABLE de12.buma_med_results""")
-            connection.commit()
-            print(f'{datetime.now()}: End script and close connection')
-    except Exception as error:
-        print(f'{datetime.now()}: Error - {error}')
+cursor_src.execute("""select * from info.clients;""")
+for record in cursor_src:
+    cursor_dwh.execute("INSERT INTO de12.buma_stg_clients VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", record)
 
+conn_dwh.commit()
+
+# загрузка из STAGE в DETAIL
+# with open('./sql_scripts/stg_terminals_TO_dwh_dim_terminals.sql', 'r') as sql_file:
+#     cursor_dwh.execute(sql_file.read())
+
+# with open('./sql_scripts/stg_cards_TO_dwh_dim_cards.sql', 'r') as sql_file:
+#     cursor_dwh.execute(sql_file.read())
+
+# with open('./sql_scripts/stg_accounts_TO_dwh_dim_accounts.sql', 'r') as sql_file:
+#     cursor_dwh.execute(sql_file.read())
+
+# with open('./sql_scripts/stg_clients_TO_dwh_dim_clients.sql', 'r') as sql_file:
+#     cursor_dwh.execute(sql_file.read())
+
+# with open('./sql_scripts/stg_passport_blacklist_TO_dwh_fact_passport_blacklist.sql', 'r') as sql_file:
+#     cursor_dwh.execute(sql_file.read())
+
+# with open('./sql_scripts/stg_transactions_TO_dwh_fact_transactions.sql', 'r') as sql_file:
+#     cursor_dwh.execute(sql_file.read())
+
+
+# закрываем соединение
+cursor_src.close()
+cursor_dwh.close()
+conn_src.close()
+conn_dwh.close()
+
+logging.info(f"Завершение скрипта")
