@@ -68,6 +68,7 @@ clear_tables(cursor_dwh, STAGE_TABLES)
 
 logging.info(f"Запуск загрузки данных из файлов в Stage:")
 logging.info(f"Загрузка из csv в Stage, de12.buma_stg_transaction")
+
 df = pd.read_csv('transactions_01032021.txt', delimiter=';')
 cursor_dwh.executemany("INSERT INTO de12.buma_stg_transactions(trans_id, trans_date, amount, card_num, oper_type,"
                        " oper_result, terminal) VALUES( %s, %s, %s, %s, %s, %s, %s)", df.values.tolist())

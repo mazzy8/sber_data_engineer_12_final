@@ -112,3 +112,11 @@ create table de12.buma_dwh_fact_transactions (
 	terminal varchar(10)
 );
 
+CREATE TABLE de12.buma_rep_fraud (
+event_dt date,
+passport varchar(15),
+fio varchar(100),
+phone varchar(16),
+event_type int,
+report_dt date
+);

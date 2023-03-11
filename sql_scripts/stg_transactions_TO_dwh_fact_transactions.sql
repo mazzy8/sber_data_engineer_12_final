@@ -7,4 +7,4 @@ insert into de12.buma_dwh_fact_transactions
 		replace(amount, ',','.')::decimal,
 		oper_result,
 		terminal
-	from de12.buma_stg_transaction;
+	from de12.buma_stg_transactions;
