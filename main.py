@@ -116,13 +116,13 @@ def processing_error_message(message: str):
 logging.info(f"Старт скрипта")
 
 while check_and_get_files_to_download() is None:
-    logging.info(f"Файлы не обнаружены:")
+    logging.warning(f"Файлыc с данными не обнаружены:")
     time_now = datetime.now().strftime('%H:%M')
     if time_now > '23:30' or time_now < '04:00':
         log_message = f"За отведенное время не обнаружены файлы с данными"
         processing_error_message(log_message)
         break
-    time.sleep(60) # 1800
+    time.sleep(60)  # 1800
     logging.info(f"Повторная проверка файлов:")
 else:
     logging.info(f"Файлы обнаружены")
@@ -159,7 +159,9 @@ else:
             else:
                 df = pd.read_csv(file, delimiter=';')
                 cursor_dwh.executemany("INSERT INTO de12.buma_stg_transactions(trans_id, trans_date, amount, card_num, "
-                                       "oper_type, oper_result, terminal) VALUES( %s, %s, %s, %s, %s, %s, %s)",
+                                       "oper_type, oper_result, terminal) VALUES( %s, "
+                                       "to_date(%s, 'YYYY-MM-DD HH24:MI:SS'), replace(%s, ',', '.')::decimal, "
+                                       "%s, %s, %s, %s)",
                                        df.values.tolist())
 
         logging.info(f"Загрузка данных из источника в STAGE:")

@@ -4,7 +4,7 @@ insert into de12.buma_dwh_fact_transactions
 		trans_date,
 		card_num,
 		oper_type,
-		replace(amount, ',','.')::decimal,
+		amount,
 		oper_result,
 		terminal
 	from de12.buma_stg_transactions;
