@@ -31,6 +31,10 @@ CREATE TABLE de12.buma_stg_accounts (
 	update_dt timestamp(0)
 );
 
+create table de12.buma_stg_accounts_del( 
+	account varchar(20)
+);
+
 create table de12.buma_stg_cards (
 	card_num varchar(20),
 	account bpchar(20),
@@ -38,6 +42,9 @@ create table de12.buma_stg_cards (
 	update_dt timestamp(0)
 );
 
+create table de12.buma_stg_cards_del( 
+	card_num varchar(20)
+);
 
 CREATE TABLE de12.buma_stg_clients (
 	client_id varchar(10),
@@ -50,6 +57,10 @@ CREATE TABLE de12.buma_stg_clients (
 	phone varchar(16),
 	create_dt timestamp(0),
 	update_dt timestamp(0)
+);
+
+CREATE TABLE de12.buma_stg_clients_del (
+	client_id varchar(10)
 );
 
 create table de12.buma_stg_meta(
@@ -77,13 +88,19 @@ create table de12.buma_dwh_dim_terminals (
 
 create table de12.buma_dwh_dim_cards (
 	card_num varchar(20),
-	account bpchar(20)
+	account_num varchar(20),
+	start_dt timestamp(0),
+	end_dt timestamp(0),
+	deleted_flag char
 );
 
 create table de12.buma_dwh_dim_accounts (
 	account_num varchar(20),
 	valid_to date,
-	client varchar(10)
+	client varchar(10),
+	start_dt timestamp(0),
+	end_dt timestamp(0),
+	deleted_flg char
 );
 
 CREATE TABLE de12.buma_dwh_dim_clients (
@@ -113,10 +130,10 @@ create table de12.buma_dwh_fact_transactions (
 );
 
 CREATE TABLE de12.buma_rep_fraud (
-event_dt date,
-passport varchar(15),
-fio varchar(100),
-phone varchar(16),
-event_type int,
-report_dt date
+	event_dt date,
+	passport varchar(15),
+	fio varchar(100),
+	phone varchar(16),
+	event_type int,
+	report_dt date
 );
