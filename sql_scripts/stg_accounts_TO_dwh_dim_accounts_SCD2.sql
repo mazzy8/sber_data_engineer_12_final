@@ -1,6 +1,6 @@
 -- Загрузка в приемник "вставок" на источнике.
 
-insert into de12.buma_dwh_dim_accounts (account_num, valid_to, client, start_dt, end_dt, deleted_flag)
+insert into de12.buma_dwh_dim_accounts (account_num, valid_to, client, start_dt, end_dt, deleted_flg)
 select 
 	stg.account , 
 	stg.valid_to , 
@@ -32,7 +32,7 @@ from (
 where buma_dwh_dim_accounts.account_num = tmp.account
   and buma_dwh_dim_accounts.end_dt = to_date('9999-12-31','YYYY-MM-DD'); 
 
-insert into de12.buma_dwh_dim_accounts (account_num, valid_to, client, start_dt, end_dt, deleted_flag)
+insert into de12.buma_dwh_dim_accounts (account_num, valid_to, client, start_dt, end_dt, deleted_flg)
 select 
 	stg.account, 
 	stg.valid_to,
@@ -50,7 +50,7 @@ where stg.valid_to <> tgt.valid_to or ( stg.valid_to is null and tgt.valid_to is
 
 -- Добавление в приемнике удаленных в источнике записей.
 
-insert into de12.buma_dwh_dim_accounts(account_num, valid_to, client, start_dt, end_dt, deleted_flag)
+insert into de12.buma_dwh_dim_accounts(account_num, valid_to, client, start_dt, end_dt, deleted_flg)
 select 
 	tgt.account_num,
 	tgt.valid_to,
@@ -63,7 +63,7 @@ left join de12.buma_stg_accounts_del stg
 	on stg.account = tgt.account_num
 where stg.account is null
   and tgt.end_dt = to_date('9999-12-31','YYYY-MM-DD')
-  and tgt.deleted_flag = 'N';
+  and tgt.deleted_flg = 'N';
 
 update de12.buma_dwh_dim_accounts
 set 
@@ -75,7 +75,7 @@ where account in (
 		on stg.account = tgt.account_num
 	where stg.account is Null
 	  and tgt.end_dt = to_date('9999-12-31','YYYY-MM-DD')
-      and tgt.deleted_flag = 'N');
+      and tgt.deleted_flg = 'N');
 
 -- Обновление метаданных.
 
