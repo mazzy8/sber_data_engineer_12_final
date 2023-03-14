@@ -2,8 +2,8 @@
 -- STAGE
 
 create table de12.buma_stg_transaction (
-	trans_id varchar(20),
-	trans_date timestamp(0),
+	transaction_id varchar(20),
+	transaction_date timestamp(0),
 	amount varchar(20),
 	card_num varchar(20),
 	oper_type varchar(10),
@@ -16,6 +16,10 @@ create table de12.buma_stg_terminals (
 	terminal_type varchar(4),
 	terminal_city varchar(20),
 	terminal_address varchar(100)
+);
+
+create table de12.buma_stg_terminals_del(
+	account varchar(20)
 );
 
 create table de12.buma_stg_passport_blacklist (
@@ -31,7 +35,7 @@ CREATE TABLE de12.buma_stg_accounts (
 	update_dt timestamp(0)
 );
 
-create table de12.buma_stg_accounts_del( 
+create table de12.buma_stg_accounts_del(
 	account varchar(20)
 );
 
@@ -42,7 +46,7 @@ create table de12.buma_stg_cards (
 	update_dt timestamp(0)
 );
 
-create table de12.buma_stg_cards_del( 
+create table de12.buma_stg_cards_del(
 	card_num varchar(20)
 );
 
@@ -83,7 +87,10 @@ create table de12.buma_dwh_dim_terminals (
 	terminal_id varchar(10),
 	terminal_type varchar(4),
 	terminal_city varchar(20),
-	terminal_address varchar(100)
+	terminal_address varchar(100),
+	start_dt timestamp(0),
+	end_dt timestamp(0),
+	deleted_flg char
 );
 
 create table de12.buma_dwh_dim_cards (
@@ -103,7 +110,7 @@ create table de12.buma_dwh_dim_accounts (
 	deleted_flg char
 );
 
-CREATE TABLE de12.buma_dwh_dim_clients (
+create table de12.buma_dwh_dim_clients (
 	client_id varchar(10),
 	last_name varchar(20),
 	first_name varchar(20),
@@ -111,7 +118,10 @@ CREATE TABLE de12.buma_dwh_dim_clients (
 	date_of_birth date,
 	passport_num varchar(15),
 	passport_valid_to date,
-	phone varchar(16)
+	phone varchar(16),
+	start_dt timestamp(0),
+	end_dt timestamp(0),
+	deleted_flg char
 );
 
 create table de12.buma_fact_passport_blacklist (

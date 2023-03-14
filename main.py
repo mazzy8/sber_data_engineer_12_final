@@ -17,11 +17,13 @@ BOT_TOKEN = os.getenv('bot_token')
 # списки таблиц и скриптов для циклов
 STAGE_TABLES = ["DE12.buma_stg_transactions", "DE12.buma_stg_terminals",
                 "DE12.buma_stg_passport_blacklist", "DE12.buma_stg_accounts",
-                "DE12.buma_stg_cards", "DE12.buma_stg_clients"
+                "DE12.buma_stg_cards", "DE12.buma_stg_clients",
+                "DE12.buma_stg_terminals_del", "DE12.buma_stg_accounts_del",
+                "DE12.buma_stg_cards_del", "DE12.buma_stg_clients_del"
                 ]
 
-SQL_SCRIPTS_TO_DWH = ['stg_terminals_TO_dwh_dim_terminals.sql', 'stg_cards_TO_dwh_dim_cards.sql',
-                      'stg_accounts_TO_dwh_dim_accounts.sql', 'stg_clients_TO_dwh_dim_clients.sql',
+SQL_SCRIPTS_TO_DWH_SCD2 = ['stg_terminals_TO_dwh_dim_terminals_SCD2.sql', 'stg_cards_TO_dwh_dim_cards_SCD2.sql',
+                      'stg_accounts_TO_dwh_dim_accounts_SCD2.sql', 'stg_clients_TO_dwh_dim_clients_SCD2.sql',
                       'stg_passport_blacklist_TO_dwh_fact_passport_blacklist.sql',
                       'stg_transactions_TO_dwh_fact_transactions.sql'
                       ]
@@ -60,7 +62,7 @@ def download_to_dwh(cursor, scripts: list):
         try:
             with open(f'./sql_scripts/{script}', 'r') as sql_file:
                 cursor.execute(sql_file.read())
-                logging.info(f"Выполнен скрипт {script}")
+                logging.info(f"Скрипт выполнен {script}")
         except Exception as e:
             log_message = f"Ошибка выполнения скрипта {script}: {e}"
             processing_error_message(log_message)
@@ -101,7 +103,7 @@ def check_and_get_files_to_download():
     if number_of_files == 3:
         date = re.search(r'\d{6,8}', checked_files[0])
         return checked_files if all([1 if date[0] in file else 0 for file in checked_files]) else None
-    if number_of_files > 3:
+    elif number_of_files > 3:
         return None  # in process
     else:
         return None
@@ -116,9 +118,9 @@ def processing_error_message(message: str):
 logging.info(f"Старт скрипта")
 
 while check_and_get_files_to_download() is None:
-    logging.warning(f"Файлыc с данными не обнаружены:")
+    logging.warning(f"Файлы с данными не обнаружены:")
     time_now = datetime.now().strftime('%H:%M')
-    if time_now > '23:30' or time_now < '04:00':
+    if time_now > '23:59' or time_now < '03:00':
         log_message = f"За отведенное время не обнаружены файлы с данными"
         processing_error_message(log_message)
         break
@@ -178,7 +180,7 @@ else:
             cursor_dwh.execute("INSERT INTO de12.buma_stg_clients VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", record)
 
         logging.info(f"Загрузка данных из STAGE в DETAIL:")
-        download_to_dwh(cursor_dwh, SQL_SCRIPTS_TO_DWH)
+        download_to_dwh(cursor_dwh, SQL_SCRIPTS_TO_DWH_SCD2)
 
         conn_dwh.commit()
         # закрываем соединение
