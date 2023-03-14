@@ -1,7 +1,7 @@
 insert into de12.buma_dwh_dim_cards (card_num, account_num, start_dt, end_dt, deleted_flg)
 select 
-	stg.card_num , 
-	stg.account , 
+	stg.card_num,
+	stg.account,
 	stg.create_dt, 
 	to_date('9999-12-31','YYYY-MM-DD'),
 	'N'
