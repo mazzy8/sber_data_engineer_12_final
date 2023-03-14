@@ -120,7 +120,7 @@ logging.info(f"Старт скрипта")
 while check_and_get_files_to_download() is None:
     logging.warning(f"Файлы с данными не обнаружены:")
     time_now = datetime.now().strftime('%H:%M')
-    if time_now > '23:59' or time_now < '03:00':
+    if time_now > '01:00': # or time_now < '03:00':
         log_message = f"За отведенное время не обнаружены файлы с данными"
         processing_error_message(log_message)
         break

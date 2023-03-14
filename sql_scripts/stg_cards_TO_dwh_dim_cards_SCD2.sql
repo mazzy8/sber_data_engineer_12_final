@@ -1,5 +1,3 @@
--- Загрузка в приемник "вставок" на источнике.
-
 insert into de12.buma_dwh_dim_cards (card_num, account_num, start_dt, end_dt, deleted_flg)
 select 
 	stg.card_num , 
@@ -11,9 +9,6 @@ from de12.buma_stg_cards stg
 left join de12.buma_dwh_dim_cards tgt
 on stg.card_num  = tgt.card_num
 where tgt.card_num is null;
-
-Обновление в приемнике "обновлений" на источнике.
-
 update de12.buma_dwh_dim_cards
 set 
 	end_dt = tmp.update_dt - interval '1 day'
@@ -28,8 +23,7 @@ from (
 	where stg.account <> tgt.account_num or ( stg.account is null and tgt.account_num is not null ) or ( stg.account is not null and tgt.account_num is null )
 ) tmp
 where buma_dwh_dim_cards.card_num = tmp.card_num
-  and buma_dwh_dim_cards.end_dt = to_date('9999-12-31','YYYY-MM-DD'); 
-
+  and buma_dwh_dim_cards.end_dt = to_date('9999-12-31','YYYY-MM-DD');
 insert into de12.buma_dwh_dim_cards (card_num, account_num, start_dt, end_dt, deleted_flg)
 select 
 	stg.card_num, 
@@ -42,10 +36,6 @@ inner join de12.buma_dwh_dim_cards tgt
 	on stg.card_num = tgt.card_num
 	and tgt.end_dt = update_dt - interval '1 day'
 where stg.account <> tgt.account_num or ( stg.account is null and tgt.account_num is not null ) or ( stg.account is not null and tgt.account_num is null );
-
-
--- Добавление в приемнике удаленных в источнике записей.
-
 insert into de12.buma_dwh_dim_cards(card_num, account_num, start_dt, end_dt, deleted_flg)
 select 
 	tgt.card_num,
@@ -59,7 +49,6 @@ left join de12.buma_stg_cards_del stg
 where stg.card_num is null
   and tgt.end_dt = to_date('9999-12-31','YYYY-MM-DD')
   and tgt.deleted_flg = 'N';
-
 update de12.buma_dwh_dim_cards
 set 
 	end_dt = now() - interval '1 day'
@@ -70,10 +59,7 @@ where card_num in (
 		on stg.card_num = tgt.card_num
 	where stg.card_num is Null
 	  and tgt.end_dt = to_date('9999-12-31','YYYY-MM-DD')
-      and tgt.deleted_flg = 'N')
-
--- Обновление метаданных.
-
+      and tgt.deleted_flg = 'N');
 update de12.buma_stg_meta
 set max_update_dt = coalesce( (select max( update_dt ) from de12.buma_stg_cards ), max_update_dt)
 where schema_name='info' and table_name = 'cards';
