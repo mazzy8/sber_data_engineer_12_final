@@ -124,7 +124,7 @@ create table de12.buma_dwh_dim_clients (
 	deleted_flg char
 );
 
-create table de12.buma_fact_passport_blacklist (
+create table de12.buma_dwh_fact_passport_blacklist (
 	date date,
 	passport varchar(15)
 );
