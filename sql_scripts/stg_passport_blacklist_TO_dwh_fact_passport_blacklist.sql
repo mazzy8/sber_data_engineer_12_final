@@ -1,4 +1,4 @@
-insert into de12.buma_fact_passport_blacklist
+insert into de12.buma_dwh_fact_passport_blacklist
 	select 
 		date,
 		passport
