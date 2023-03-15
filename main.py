@@ -73,7 +73,7 @@ def drop_to_archive(files: list):
         if not os.path.isdir("archive"):
             os.mkdir("archive")
         for file in files:
-            os.replace(file, f"archive/{file + '.archive'}")
+            os.replace(file, f"archive/{file + '.backup'}")
     except Exception as e:
         log_message = f"Ошибка работы скрипта архивирования: {e}"
         processing_error_message(log_message)
