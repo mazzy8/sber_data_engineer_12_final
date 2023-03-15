@@ -90,6 +90,6 @@ where client_id in (
 	where stg.client_id is Null
 	  and tgt.end_dt = to_date('9999-12-31','YYYY-MM-DD')
       and tgt.deleted_flg = 'N');
-update de12.buma_meta
+update de12.buma_meta_stg
 set max_update_dt = coalesce( (select max( update_dt ) from de12.buma_stg_clients ), max_update_dt)
 where schema_name='info' and table_name = 'clients';

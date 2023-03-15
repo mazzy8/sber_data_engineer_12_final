@@ -60,6 +60,6 @@ where card_num in (
 	where stg.card_num is Null
 	  and tgt.end_dt = to_date('9999-12-31','YYYY-MM-DD')
       and tgt.deleted_flg = 'N');
-update de12.buma_stg_meta
+update de12.buma_meta_stg
 set max_update_dt = coalesce( (select max( update_dt ) from de12.buma_stg_cards ), max_update_dt)
 where schema_name='info' and table_name = 'cards';

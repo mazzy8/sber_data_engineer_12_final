@@ -67,17 +67,22 @@ CREATE TABLE de12.buma_stg_clients_del (
 	client_id varchar(10)
 );
 
-create table de12.buma_stg_meta(
+create table de12.buma_meta_stg(
     schema_name varchar(30),
     table_name varchar(30),
     max_update_dt timestamp(0)
 );
 
-insert into de12.buma_stg_meta( schema_name, table_name, max_update_dt )
+insert into de12.buma_meta_stg ( schema_name, table_name, max_update_dt )
 values( 'info','accounts', to_timestamp('1900-01-01','YYYY-MM-DD')),
 	   ('info','clients', to_timestamp('1900-01-01','YYYY-MM-DD')),
 	   ('info','cards', to_timestamp('1900-01-01','YYYY-MM-DD')
 );
+
+create table de12.buma_meta_fraud (max_update_dt timestamp(0));
+
+insert into de12.buma_meta_fraud ( max_update_dt )
+values( to_timestamp('2999-12-31','YYYY-MM-DD'));
 
 
 ----------------------------------------------------------------------------
@@ -126,7 +131,7 @@ create table de12.buma_dwh_dim_clients (
 
 create table de12.buma_dwh_fact_passport_blacklist (
 	date date,
-	passport varchar(15)
+	passport_num varchar(15)
 );
 
 create table de12.buma_dwh_fact_transactions (

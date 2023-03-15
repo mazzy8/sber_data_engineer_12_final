@@ -14,7 +14,7 @@ logging.basicConfig(level=logging.INFO, filename=f"./logs/{datetime.now().date()
                     format="%(asctime)s %(levelname)s %(message)s")
 BOT_TOKEN = os.getenv('bot_token')
 
-# списки таблиц и скриптов для циклов
+# список таблиц стейджа
 STAGE_TABLES = ["DE12.buma_stg_transactions", "DE12.buma_stg_terminals",
                 "DE12.buma_stg_passport_blacklist", "DE12.buma_stg_accounts",
                 "DE12.buma_stg_cards", "DE12.buma_stg_clients",
@@ -22,6 +22,10 @@ STAGE_TABLES = ["DE12.buma_stg_transactions", "DE12.buma_stg_terminals",
                 "DE12.buma_stg_cards_del", "DE12.buma_stg_clients_del"
                 ]
 
+# список таблиц витрин данных
+DATA_MARTS = ['frauds.sql']
+
+# скрипты загрузки из стейдж в таргет
 SQL_SCRIPTS_TO_DWH_SCD2 = ['stg_terminals_TO_dwh_dim_terminals_SCD2.sql', 'stg_cards_TO_dwh_dim_cards_SCD2.sql',
                       'stg_accounts_TO_dwh_dim_accounts_SCD2.sql', 'stg_clients_TO_dwh_dim_clients_SCD2.sql',
                       'stg_passport_blacklist_TO_dwh_fact_passport_blacklist.sql',
@@ -43,7 +47,7 @@ DB_EDU_DWH = {"dbname": "edu",
               "port": "5432"
               }
 
-# имена файлов для загрузки
+# шаблоны имен файлов для загрузки
 NAMES_FILES_FOR_DOWNLOAD = ['passport_blacklist', 'terminal', 'transaction']
 
 
@@ -57,7 +61,7 @@ def clear_tables(cursor, tables: list):
             processing_error_message(log_message)
 
 
-def download_to_dwh(cursor, scripts: list):
+def execute_sql_scripts(cursor, scripts: list):
     for script in scripts:
         try:
             with open(f'./sql_scripts/{script}', 'r') as sql_file:
@@ -120,7 +124,7 @@ logging.info(f"Старт скрипта")
 while check_and_get_files_to_download() is None:
     logging.warning(f"Файлы с данными не обнаружены:")
     time_now = datetime.now().strftime('%H:%M')
-    if time_now > '01:00': # or time_now < '03:00':
+    if time_now > '05:00':  # or time_now < '23:55':
         log_message = f"За отведенное время не обнаружены файлы с данными"
         processing_error_message(log_message)
         break
@@ -156,31 +160,43 @@ else:
                                        "(date, passport) VALUES( %s, %s)", df.values.tolist())
             elif 'terminals' in file:
                 df = get_data_from_exel(file)
-                cursor_dwh.executemany("INSERT INTO de12.buma_stg_terminals(terminal_id, terminal_type, terminal_city, "
+                cursor_dwh.executemany("INSERT INTO de12.buma_stg_terminals(terminal_id, terminal_type, terminal_city,"
                                        "terminal_address) VALUES( %s, %s, %s, %s)", df.values.tolist())
             else:
                 df = pd.read_csv(file, delimiter=';')
-                cursor_dwh.executemany("INSERT INTO de12.buma_stg_transactions(trans_id, trans_date, amount, card_num, "
+                cursor_dwh.executemany("INSERT INTO de12.buma_stg_transactions(trans_id, trans_date, amount, card_num,"
                                        "oper_type, oper_result, terminal) VALUES( %s, "
-                                       "to_date(%s, 'YYYY-MM-DD HH24:MI:SS'), replace(%s, ',', '.')::decimal, "
+                                       "to_date(%s, 'YYYY-MM-DD HH24:MI:SS'), replace(%s, ',', '.')::decimal,"
                                        "%s, %s, %s, %s)",
                                        df.values.tolist())
 
         logging.info(f"Загрузка данных из источника в STAGE:")
-        cursor_src.execute("""select * from info.accounts;""")
+        cursor_dwh.execute("select max_update_dt from de12.buma_meta_stg "
+                           "where schema_name='info' and table_name='accounts';")
+        cursor_src.execute(f"select * from info.accounts where 'update_dt' is not Null and "
+                            f"'update_dt' > '{cursor_dwh.fetchone()[0]}';")
         for record in cursor_src:
             cursor_dwh.execute("INSERT INTO de12.buma_stg_accounts VALUES(%s, %s, %s, %s, %s)", record)
 
-        cursor_src.execute("""select * from info.cards;""")
+        cursor_dwh.execute("select max_update_dt from de12.buma_meta_stg "
+                           "where schema_name='info' and table_name='cards';")
+        cursor_src.execute(f"select * from info.cards where 'update_dt' is not Null and "
+                           f"'update_dt' > '{cursor_dwh.fetchone()[0]}';")
         for record in cursor_src:
             cursor_dwh.execute("INSERT INTO de12.buma_stg_cards VALUES(%s, %s, %s, %s)", record)
 
-        cursor_src.execute("""select * from info.clients;""")
+        cursor_dwh.execute("select max_update_dt from de12.buma_meta_stg "
+                           "where schema_name='info' and table_name='clients';")
+        cursor_src.execute(f"select * from info.clients where 'update_dt' is not Null and "
+                           f"'update_dt' > '{cursor_dwh.fetchone()[0]}';")
         for record in cursor_src:
             cursor_dwh.execute("INSERT INTO de12.buma_stg_clients VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", record)
 
         logging.info(f"Загрузка данных из STAGE в DETAIL:")
-        download_to_dwh(cursor_dwh, SQL_SCRIPTS_TO_DWH_SCD2)
+        execute_sql_scripts(cursor_dwh, SQL_SCRIPTS_TO_DWH_SCD2)
+
+        logging.info(f"Загрузка данных в витрину:")
+        execute_sql_scripts(cursor_dwh, DATA_MARTS)
 
         conn_dwh.commit()
         # закрываем соединение
