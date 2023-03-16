@@ -70,9 +70,9 @@ create table de12.buma_meta_stg(
 );
 
 insert into de12.buma_meta_stg ( schema_name, table_name, max_update_dt )
-values( 'info','accounts', to_timestamp('1900-01-01','YYYY-MM-DD')),
-	   ('info','clients', to_timestamp('1900-01-01','YYYY-MM-DD')),
-	   ('info','cards', to_timestamp('1900-01-01','YYYY-MM-DD')
+values( 'info','accounts', to_timestamp('1899-01-01','YYYY-MM-DD')),
+	   ('info','clients', to_timestamp('1899-01-01','YYYY-MM-DD')),
+	   ('info','cards', to_timestamp('1899-01-01','YYYY-MM-DD')
 );
 
 create table de12.buma_meta_fraud (max_update_dt timestamp(0));
@@ -141,7 +141,7 @@ create table de12.buma_dwh_fact_transactions (
 );
 
 CREATE TABLE de12.buma_rep_fraud (
-	event_dt date,
+	event_dt timestamp(0),
 	passport varchar(15),
 	fio varchar(100),
 	phone varchar(16),
