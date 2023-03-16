@@ -4,7 +4,7 @@ with allt as(
     left join de12.buma_dwh_dim_cards card
     on trim(tran.card_num) = trim(card.card_num)
       left join de12.buma_dwh_dim_accounts acc
-      on card.account_num = acc.account_num
+      on trim(card.account_num) = trim(acc.account_num)
         left join de12.buma_dwh_dim_clients cli
         on acc.client = cli.client_id
   where tran.trans_date > (select max_update_dt from de12.buma_meta_fraud)
