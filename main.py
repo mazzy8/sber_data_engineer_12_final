@@ -173,22 +173,25 @@ else:
         logging.info(f"Загрузка данных из источника в STAGE:")
         cursor_dwh.execute("select max_update_dt from de12.buma_meta_stg "
                            "where schema_name='info' and table_name='accounts';")
-        cursor_src.execute(f"select * from info.accounts where 'update_dt' is not Null and "
-                            f"'update_dt' > '{cursor_dwh.fetchone()[0]}';")
+        date_point = cursor_dwh.fetchone()[0]
+        cursor_src.execute(f"select * from info.accounts where 'create_dt' > '{date_point}' or "
+                           f"('update_dt' is not Null and 'update_dt' > '{date_point}');")
         for record in cursor_src:
             cursor_dwh.execute("INSERT INTO de12.buma_stg_accounts VALUES(%s, %s, %s, %s, %s)", record)
 
         cursor_dwh.execute("select max_update_dt from de12.buma_meta_stg "
                            "where schema_name='info' and table_name='cards';")
-        cursor_src.execute(f"select * from info.cards where 'update_dt' is not Null and "
-                           f"'update_dt' > '{cursor_dwh.fetchone()[0]}';")
+        date_point = cursor_dwh.fetchone()[0]
+        cursor_src.execute(f"select * from info.cards where 'create_dt' > '{date_point}' or "
+                           f"('update_dt' is not Null and'update_dt' > '{date_point}');")
         for record in cursor_src:
             cursor_dwh.execute("INSERT INTO de12.buma_stg_cards VALUES(%s, %s, %s, %s)", record)
 
         cursor_dwh.execute("select max_update_dt from de12.buma_meta_stg "
                            "where schema_name='info' and table_name='clients';")
-        cursor_src.execute(f"select * from info.clients where 'update_dt' is not Null and "
-                           f"'update_dt' > '{cursor_dwh.fetchone()[0]}';")
+        date_point = cursor_dwh.fetchone()[0]
+        cursor_src.execute(f"select * from info.clients where 'create_dt' > '{date_point}' or "
+                           f"('update_dt' is not Null and 'update_dt' > '{date_point}');")
         for record in cursor_src:
             cursor_dwh.execute("INSERT INTO de12.buma_stg_clients VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", record)
 
