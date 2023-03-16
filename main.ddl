@@ -1,7 +1,7 @@
 ----------------------------------------------------------------------------
 -- STAGE
 
-create table de12.buma_stg_transaction (
+create table de12.buma_stg_transactions (
 	transaction_id varchar(20),
 	transaction_date timestamp(0),
 	amount varchar(20),
@@ -148,3 +148,44 @@ CREATE TABLE de12.buma_rep_fraud (
 	event_type int,
 	report_dt date
 );
+
+
+------------------------------------------------------------
+--Clear
+--drop table de12.buma_stg_transactions;
+--drop table de12.buma_stg_terminals;
+--drop table de12.buma_stg_passport_blacklist;
+--drop table de12.buma_stg_accounts;
+--drop table de12.buma_stg_accounts_del;
+--drop table de12.buma_stg_cards;
+--drop table de12.buma_stg_cards_del;
+--drop table de12.buma_stg_clients;
+--drop table de12.buma_stg_clients_del;
+--drop table de12.buma_meta_stg;
+--drop table de12.buma_meta_fraud;
+--drop table de12.buma_dwh_dim_terminals;
+--drop table de12.buma_dwh_dim_cards;
+--drop table de12.buma_dwh_dim_accounts;
+--drop table de12.buma_dwh_dim_clients;
+--drop table de12.buma_dwh_fact_passport_blacklist;
+--drop table de12.buma_dwh_fact_transactions;
+--drop table de12.buma_rep_fraud;
+
+--delete from de12.buma_stg_transactions;
+--delete from de12.buma_stg_terminals;
+--delete from de12.buma_stg_passport_blacklist;
+--delete from de12.buma_stg_accounts;
+--delete from de12.buma_stg_accounts_del;
+--delete from de12.buma_stg_cards;
+--delete from de12.buma_stg_cards_del;
+--delete from de12.buma_stg_clients;
+--delete from de12.buma_stg_clients_del;
+--delete frome de12.buma_meta_stg;
+--delete from de12.buma_meta_fraud;
+--delete from de12.buma_dwh_dim_terminals;
+--delete from de12.buma_dwh_dim_cards;
+--delete from de12.buma_dwh_dim_accounts;
+--delete from de12.buma_dwh_dim_clients;
+--delete from de12.buma_dwh_fact_passport_blacklist;
+--delete from de12.buma_dwh_fact_transactions;
+--delete from de12.buma_rep_fraud;

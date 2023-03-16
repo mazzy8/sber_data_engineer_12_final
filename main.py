@@ -164,12 +164,11 @@ else:
             else:
                 df = pd.read_csv(file, delimiter=';')
                 cursor_dwh.executemany("INSERT INTO de12.buma_stg_transactions(trans_id, trans_date, amount, card_num,"
-                                       "oper_type, oper_result, terminal) VALUES( %s, "
-                                       "%s::timestamp, replace(%s, ',', '.')::decimal,"
-                                       "%s, %s, %s, %s)",
+                                       "oper_type, oper_result, terminal) VALUES"
+                                       "( %s, '%s'::timestamp, replace(%s, ',', '.')::decimal, %s, %s, %s, %s)",
                                        df.values.tolist())
 
-logging.info(f"Загрузка данных из источника в STAGE:")
+        logging.info(f"Загрузка данных из источника в STAGE:")
         logging.info(f"Заполнение de12.buma_stg_accounts и de12.buma_stg_accounts_del")
         cursor_dwh.execute("select max_update_dt from de12.buma_meta_stg "
                            "where schema_name='info' and table_name='accounts';")
@@ -213,11 +212,13 @@ logging.info(f"Загрузка данных из источника в STAGE:")
         execute_sql_scripts(cursor_dwh, DATA_MARTS)
 
         conn_dwh.commit()
+
         # закрываем соединение
         cursor_src.close()
         cursor_dwh.close()
         conn_src.close()
         conn_dwh.close()
+
         # перемещаем файлы в архив
         logging.info(f"Перемещение файлов({list_of_files}) в архив:")
         drop_to_archive(list_of_files)
