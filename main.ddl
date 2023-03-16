@@ -4,7 +4,7 @@
 create table de12.buma_stg_transactions (
 	transaction_id varchar(20),
 	transaction_date timestamp(0),
-	amount varchar(20),
+	amount decimal,
 	card_num varchar(20),
 	oper_type varchar(10),
 	oper_result varchar(10),

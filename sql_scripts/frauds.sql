@@ -49,4 +49,4 @@ all_frauds as(
 insert into de12.buma_rep_fraud
 	select * from all_frauds;
 update de12.buma_meta_fraud
-set max_update_dt = coalesce( (select max( trans_date ) from de12.buma_stg_transactions ), max_update_dt);
+set max_update_dt = coalesce( (select max( transaction_date ) from de12.buma_stg_transactions ), max_update_dt);
