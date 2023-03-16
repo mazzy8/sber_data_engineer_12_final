@@ -180,7 +180,7 @@ CREATE TABLE de12.buma_rep_fraud (
 --delete from de12.buma_stg_cards_del;
 --delete from de12.buma_stg_clients;
 --delete from de12.buma_stg_clients_del;
---delete frome de12.buma_meta_stg;
+--delete from de12.buma_meta_stg;
 --delete from de12.buma_meta_fraud;
 --delete from de12.buma_dwh_dim_terminals;
 --delete from de12.buma_dwh_dim_cards;

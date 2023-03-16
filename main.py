@@ -163,9 +163,9 @@ else:
                                        "terminal_address) VALUES( %s, %s, %s, %s)", df.values.tolist())
             else:
                 df = pd.read_csv(file, delimiter=';')
-                cursor_dwh.executemany("INSERT INTO de12.buma_stg_transactions(trans_id, trans_date, amount, card_num,"
-                                       "oper_type, oper_result, terminal) VALUES"
-                                       "( %s, '%s'::timestamp, replace(%s, ',', '.')::decimal, %s, %s, %s, %s)",
+                cursor_dwh.executemany("INSERT INTO de12.buma_stg_transactions(transaction_id, transaction_date, "
+                                       "amount, card_num, oper_type, oper_result, terminal) VALUES "
+                                       "( %s, %s::timestamp, replace(%s, ',', '.')::decimal, %s, %s, %s, %s)",
                                        df.values.tolist())
 
         logging.info(f"Загрузка данных из источника в STAGE:")
