@@ -18,10 +18,6 @@ create table de12.buma_stg_terminals (
 	terminal_address varchar(100)
 );
 
-create table de12.buma_stg_terminals_del(
-	account varchar(20)
-);
-
 create table de12.buma_stg_passport_blacklist (
 	date date,
 	passport varchar(15)
