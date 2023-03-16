@@ -166,7 +166,7 @@ else:
                 df = pd.read_csv(file, delimiter=';')
                 cursor_dwh.executemany("INSERT INTO de12.buma_stg_transactions(trans_id, trans_date, amount, card_num,"
                                        "oper_type, oper_result, terminal) VALUES( %s, "
-                                       "to_date(%s, 'YYYY-MM-DD HH24:MI:SS'), replace(%s, ',', '.')::decimal,"
+                                       "%s::timestamp, replace(%s, ',', '.')::decimal,"
                                        "%s, %s, %s, %s)",
                                        df.values.tolist())
 
