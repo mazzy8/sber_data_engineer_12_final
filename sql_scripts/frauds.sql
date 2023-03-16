@@ -2,7 +2,7 @@ with allt as(
   select *
   from de12.buma_dwh_fact_transactions tran
     left join de12.buma_dwh_dim_cards card
-    on tran.card_num = card.card_num
+    on trim(tran.card_num) = trim(card.card_num)
       left join de12.buma_dwh_dim_accounts acc
       on card.account_num = acc.account_num
         left join de12.buma_dwh_dim_clients cli
