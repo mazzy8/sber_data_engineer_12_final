@@ -99,7 +99,7 @@ create table de12.buma_dwh_dim_cards (
 	account_num varchar(20),
 	start_dt timestamp(0),
 	end_dt timestamp(0),
-	deleted_flag char
+	deleted_flg char
 );
 
 create table de12.buma_dwh_dim_accounts (

@@ -97,15 +97,15 @@ def get_data_from_exel(path: str):
 
 def check_and_get_files_to_download():
     files = os.listdir("./")
-    checked_files = []
+    verified_files = []
     for file in files:
         for name in NAMES_FILES_FOR_DOWNLOAD:
             if name in file:
-                checked_files.append(file)
-    number_of_files = len(checked_files)
+                verified_files.append(file)
+    number_of_files = len(verified_files)
     if number_of_files == 3:
-        date = re.search(r'\d{6,8}', checked_files[0])
-        return checked_files if all([1 if date[0] in file else 0 for file in checked_files]) else None
+        date = re.search(r'\d{6,8}', verified_files[0])
+        return verified_files if all([1 if date[0] in file else 0 for file in verified_files]) else None
     elif number_of_files > 3:
         return None  # in process
     else:
@@ -132,10 +132,8 @@ while check_and_get_files_to_download() is None:
 else:
     logging.info(f"Файлы обнаружены")
     try:
-        # Создание подключения к источнику
+        # Создание подключения к источнику и хранилищу
         conn_src = psycopg2.connect(**DB_BANK_SOURCE)
-
-        # Создание подключения к хранилищу
         conn_dwh = psycopg2.connect(**DB_EDU_DWH)
 
         # Отключение автокоммита
