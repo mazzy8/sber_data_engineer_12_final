@@ -171,6 +171,7 @@ else:
                                        df.values.tolist())
 
         logging.info(f"Загрузка данных из источника в STAGE:")
+        logging.info(f"Заполнение de12.buma_stg_accounts и de12.buma_stg_accounts_del")
         cursor_dwh.execute("select max_update_dt from de12.buma_meta_stg "
                            "where schema_name='info' and table_name='accounts';")
         date_point = cursor_dwh.fetchone()[0]
@@ -178,7 +179,11 @@ else:
                            f"('update_dt' is not Null and 'update_dt' > '{date_point}');")
         for record in cursor_src:
             cursor_dwh.execute("INSERT INTO de12.buma_stg_accounts VALUES(%s, %s, %s, %s, %s)", record)
-
+        cursor_src.execute(f"select 'account' from info.accounts;")
+        for record in cursor_src:
+          cursor_dwh.execute("INSERT INTO de12.buma_stg_accounts_del VALUES(%s)", record)
+            
+        logging.info(f"Заполнение de12.buma_stg_cards и de12.buma_stg_cards_del")
         cursor_dwh.execute("select max_update_dt from de12.buma_meta_stg "
                            "where schema_name='info' and table_name='cards';")
         date_point = cursor_dwh.fetchone()[0]
@@ -186,7 +191,11 @@ else:
                            f"('update_dt' is not Null and'update_dt' > '{date_point}');")
         for record in cursor_src:
             cursor_dwh.execute("INSERT INTO de12.buma_stg_cards VALUES(%s, %s, %s, %s)", record)
-
+        cursor_src.execute(f"select 'card_num' from info.cards;")
+        for record in cursor_src:
+          cursor_dwh.execute("INSERT INTO de12.buma_stg_cards_del VALUES(%s)", record)
+            
+        logging.info(f"Заполнение de12.buma_stg_clients и de12.buma_stg_clients_del")
         cursor_dwh.execute("select max_update_dt from de12.buma_meta_stg "
                            "where schema_name='info' and table_name='clients';")
         date_point = cursor_dwh.fetchone()[0]
@@ -194,6 +203,9 @@ else:
                            f"('update_dt' is not Null and 'update_dt' > '{date_point}');")
         for record in cursor_src:
             cursor_dwh.execute("INSERT INTO de12.buma_stg_clients VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", record)
+        cursor_src.execute(f"select 'client_id' from info.clients;")
+        for record in cursor_src:
+          cursor_dwh.execute("INSERT INTO de12.buma_stg_clients_del VALUES(%s)", record)
 
         logging.info(f"Загрузка данных из STAGE в DETAIL:")
         execute_sql_scripts(cursor_dwh, SQL_SCRIPTS_TO_DWH_SCD2)
