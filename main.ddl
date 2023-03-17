@@ -84,7 +84,7 @@ values( to_timestamp('2999-12-31','YYYY-MM-DD'));
 ----------------------------------------------------------------------------
 -- DETAIL
 
-create table de12.buma_dwh_dim_terminals (
+create table de12.buma_dwh_dim_terminals_hist (
 	terminal_id varchar(10),
 	terminal_type varchar(4),
 	terminal_city varchar(20),
@@ -94,7 +94,7 @@ create table de12.buma_dwh_dim_terminals (
 	deleted_flg char
 );
 
-create table de12.buma_dwh_dim_cards (
+create table de12.buma_dwh_dim_cards_hist (
 	card_num varchar(20),
 	account_num varchar(20),
 	start_dt timestamp(0),
@@ -102,7 +102,7 @@ create table de12.buma_dwh_dim_cards (
 	deleted_flg char
 );
 
-create table de12.buma_dwh_dim_accounts (
+create table de12.buma_dwh_dim_accounts_hist (
 	account_num varchar(20),
 	valid_to date,
 	client varchar(10),
@@ -111,7 +111,7 @@ create table de12.buma_dwh_dim_accounts (
 	deleted_flg char
 );
 
-create table de12.buma_dwh_dim_clients (
+create table de12.buma_dwh_dim_clients_hist (
 	client_id varchar(10),
 	last_name varchar(20),
 	first_name varchar(20),
@@ -166,10 +166,10 @@ CREATE TABLE de12.buma_rep_fraud (
 --drop table de12.buma_stg_clients_del;
 --drop table de12.buma_meta_stg;
 --drop table de12.buma_meta_fraud;
---drop table de12.buma_dwh_dim_terminals;
---drop table de12.buma_dwh_dim_cards;
---drop table de12.buma_dwh_dim_accounts;
---drop table de12.buma_dwh_dim_clients;
+--drop table de12.buma_dwh_dim_terminals_hist;
+--drop table de12.buma_dwh_dim_cards_hist;
+--drop table de12.buma_dwh_dim_accounts_hist;
+--drop table de12.buma_dwh_dim_clients_hist;
 --drop table de12.buma_dwh_fact_passport_blacklist;
 --drop table de12.buma_dwh_fact_transactions;
 --drop table de12.buma_rep_fraud;
@@ -185,10 +185,10 @@ CREATE TABLE de12.buma_rep_fraud (
 --delete from de12.buma_stg_clients_del;
 --delete from de12.buma_meta_stg;
 --delete from de12.buma_meta_fraud;
---delete from de12.buma_dwh_dim_terminals;
---delete from de12.buma_dwh_dim_cards;
---delete from de12.buma_dwh_dim_accounts;
---delete from de12.buma_dwh_dim_clients;
+--delete from de12.buma_dwh_dim_terminals_hist;
+--delete from de12.buma_dwh_dim_cards_hist;
+--delete from de12.buma_dwh_dim_accounts_hist;
+--delete from de12.buma_dwh_dim_clients_hist;
 --delete from de12.buma_dwh_fact_passport_blacklist;
 --delete from de12.buma_dwh_fact_transactions;
 --delete from de12.buma_rep_fraud;

@@ -1,11 +1,11 @@
 with allt as(
   select *
   from de12.buma_dwh_fact_transactions tran
-    left join de12.buma_dwh_dim_cards card
+    left join de12.buma_dwh_dim_cards_hist card
     on trim(tran.card_num) = trim(card.card_num)
-      left join de12.buma_dwh_dim_accounts acc
+      left join de12.buma_dwh_dim_accounts_hist acc
       on trim(card.account_num) = trim(acc.account_num)
-        left join de12.buma_dwh_dim_clients cli
+        left join de12.buma_dwh_dim_clients_hist cli
         on acc.client = cli.client_id
   where tran.trans_date > (select max_update_dt from de12.buma_meta_fraud)
 ),

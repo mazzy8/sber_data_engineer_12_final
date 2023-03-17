@@ -25,11 +25,11 @@ STAGE_TABLES = ["DE12.buma_stg_transactions", "DE12.buma_stg_terminals",
 DATA_MARTS = ['frauds.sql']
 
 # скрипты загрузки из стейдж в таргет
-SQL_SCRIPTS_TO_DWH_SCD2 = ['stg_terminals_TO_dwh_dim_terminals_SCD2.sql', 'stg_cards_TO_dwh_dim_cards_SCD2.sql',
-                      'stg_accounts_TO_dwh_dim_accounts_SCD2.sql', 'stg_clients_TO_dwh_dim_clients_SCD2.sql',
-                      'stg_passport_blacklist_TO_dwh_fact_passport_blacklist.sql',
-                      'stg_transactions_TO_dwh_fact_transactions.sql'
-                      ]
+SQL_SCRIPTS_TO_DWH_SCD2 = ['stg_terminals_TO_dwh_dim_terminals_hist.sql', 'stg_cards_TO_dwh_dim_cards_hist.sql',
+                           'stg_accounts_TO_dwh_dim_accounts_hist.sql', 'stg_clients_TO_dwh_dim_clients_hist.sql',
+                           'stg_passport_blacklist_TO_dwh_fact_passport_blacklist.sql',
+                           'stg_transactions_TO_dwh_fact_transactions.sql'
+                           ]
 
 # параметры подключений к БД (логин и пароль в переменных окружения)
 DB_BANK_SOURCE = {"dbname": "bank",
