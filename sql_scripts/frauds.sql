@@ -19,7 +19,7 @@ T1 as(
 	now()::date report_dt
   from allt
   where lower(allt.oper_result) = 'success' and (allt.passport_num in (select bl.passport_num from de12.buma_dwh_fact_passport_blacklist bl ) or
-  allt.passport_num in (select passport_num from allt where passport_valid_to is not null and passport_valid_to < trans_date ))
+  allt.passport_num in (select passport_num from allt where passport_valid_to is not null and passport_valid_to < trans_date::date ))
 ),
 T2 as (
   select
