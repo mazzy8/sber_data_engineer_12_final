@@ -123,11 +123,11 @@ logging.info(f"Старт скрипта")
 while check_and_get_files_to_download() is None:
     logging.warning(f"Файлы с данными не обнаружены:")
     time_now = datetime.now().strftime('%H:%M')
-    if time_now > '05:00':  # or time_now < '23:55':
+    if time_now > '03:00' and time_now < '23:59':
         log_message = f"За отведенное время не обнаружены файлы с данными"
         processing_error_message(log_message)
         break
-    time.sleep(60)  # 1800
+    time.sleep(36000)
     logging.info(f"Повторная проверка файлов:")
 else:
     logging.info(f"Файлы обнаружены")
@@ -220,6 +220,7 @@ else:
         # перемещаем файлы в архив
         logging.info(f"Перемещение файлов({list_of_files}) в архив:")
         drop_to_archive(list_of_files)
+        
     except Exception as e:
         log_message = f"Ошибка исполнения скрипта: {e}"
         processing_error_message(log_message)
