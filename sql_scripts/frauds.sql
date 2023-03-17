@@ -32,15 +32,6 @@ T2 as (
   from allt
   where valid_to < trans_date::date and lower(allt.oper_result) = 'success'
 ),
-T3 as(
-  select
-  *
-  from allt
-    left join de12.buma_dwh_dim_terminals term
-    on allt.terminal = term.terminal_id
-  where lower(allt.oper_result) = 'success'
-  order by trans_date
-),
 all_frauds as(
   (select * from T1)
   union

@@ -13,7 +13,7 @@ on stg.terminal_id  = tgt.terminal_id
 where tgt.terminal_id is null;
 update de12.buma_dwh_dim_terminals_hist
 set
-	end_dt = (now() - interval '1 day')::date
+	end_dt = (select max(transaction_date) from de12.buma_stg_transactions)::date - interval '1 day'
 from (
 	select
 		stg.terminal_id
@@ -33,7 +33,7 @@ select
 	stg.terminal_type,
 	stg.terminal_city,
 	stg.terminal_address,
-	now()::date,
+	(select max(transaction_date) from de12.buma_stg_transactions)::date,
 	to_date('2999-12-31','YYYY-MM-DD'),
 	'N'
 from de12.buma_stg_terminals stg
@@ -49,7 +49,7 @@ select
 	tgt.terminal_type,
 	tgt.terminal_city,
 	tgt.terminal_address,
-	now()::date,
+	(select max(transaction_date) from de12.buma_stg_transactions)::date,
 	to_date('2999-12-31','YYYY-MM-DD'),
 	'Y'
 from de12.buma_dwh_dim_terminals_hist tgt
@@ -60,7 +60,7 @@ where stg.terminal_id is null
   and tgt.deleted_flg = 'N';
 update de12.buma_dwh_dim_terminals_hist
 set
-	end_dt = (now() - interval '1 day')::date
+	end_dt = (select max(transaction_date) from de12.buma_stg_transactions)::date - interval '1 day'
 where terminal_id in (
 	select tgt.terminal_id
 	from de12.buma_dwh_dim_terminals_hist tgt
