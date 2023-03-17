@@ -30,7 +30,7 @@ T2 as (
 	2 event_type,
 	now()::date report_dt
   from allt
-  where valid_to < trans_date and lower(allt.oper_result) = 'success'
+  where valid_to < trans_date::date and lower(allt.oper_result) = 'success'
 ),
 T3 as(
   select
