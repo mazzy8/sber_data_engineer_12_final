@@ -140,6 +140,9 @@ create table de12.buma_dwh_fact_transactions (
 	terminal varchar(10)
 );
 
+----------------------------------------------------------------------------
+-- DATA MARTS
+
 CREATE TABLE de12.buma_rep_fraud (
 	event_dt timestamp(0),
 	passport varchar(15),
