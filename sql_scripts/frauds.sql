@@ -19,9 +19,8 @@ Type_1 as(
         now()::date as report_dt
     from all_tables_for_T1_and_T2 as allt
     where lower(allt.oper_result) = 'success'
-        and (allt.passport_num in (select bl.passport_num from de12.buma_dwh_fact_passport_blacklist bl )
-        or allt.passport_num in (select passport_num from all_tables_for_T1_and_T2 where passport_valid_to is not null
-        and passport_valid_to < trans_date::date ))
+        and (allt.passport_num in (select passport_num from de12.buma_dwh_fact_passport_blacklist)
+        or allt.passport_num in (select passport_num from all_tables_for_T1_and_T2 where passport_valid_to is not null and passport_valid_to < trans_date::date ))
 ),
 Type_2 as (
     select
@@ -39,9 +38,11 @@ Type_3_diff_city as(
         card_num,
         count(distinct term.terminal_city) as cnt_city
     from de12.buma_dwh_fact_transactions trans
-	    left join de12.buma_dwh_dim_terminals_hist term 
+	    left join de12.buma_dwh_dim_terminals_hist term
 	    on trans.terminal = term.terminal_id
-	where trans.oper_result = 'SUCCESS' and term.terminal_city is not Null
+	where trans.oper_result = 'SUCCESS'
+		and term.terminal_city is not null
+		and trans.trans_date > (select max_update_dt from de12.buma_meta_fraud ) - 60 * interval'1 minute'
     group by trans.card_num
     having count(distinct term.terminal_city) > 1
 ),
@@ -51,10 +52,11 @@ Type_3_trans_per_city as(
         trans.trans_date,
         term.terminal_city
     from de12.buma_dwh_fact_transactions trans
-	    inner join Type_3_diff_city df 
+	    inner join Type_3_diff_city df
 	    on trans.card_num = df.card_num
-    		left join de12.buma_dwh_dim_terminals_hist term 
+    		left join de12.buma_dwh_dim_terminals_hist term
     		on trans.terminal = term.terminal_id
+    where trans.trans_date > (select max_update_dt from de12.buma_meta_fraud) - 60 * interval'1 minute'
 ),
 Type_3_trans_last_and_current_city as(
     select
@@ -73,7 +75,9 @@ Type_3_fraud as(
     from Type_3_trans_last_and_current_city
     where extract(epoch FROM (third_city_date - second_city_date)/60) < 60
     and current_city = second_city
+    and second_city is not Null
     and second_city != third_city
+    and third_city is not Null
     group by card_num
 ),
 Type_3 as(
@@ -85,11 +89,11 @@ Type_3 as(
 	    3 as event_type,
         now()::date as report_dt
     from Type_3_fraud fr
-    	left join de12.buma_dwh_dim_cards_hist cards 
+    	left join de12.buma_dwh_dim_cards_hist cards
     	on fr.card_num = cards.card_num
-    		left join de12.buma_dwh_dim_accounts_hist accounts 
+    		left join de12.buma_dwh_dim_accounts_hist accounts
     		on cards.account_num = accounts.account_num
-    			left join de12.buma_dwh_dim_clients_hist clients 
+    			left join de12.buma_dwh_dim_clients_hist clients
     			on accounts.client = clients.client_id
 ),
 Type_4_data_preparation_for_sampling as(
@@ -107,20 +111,24 @@ Type_4_data_preparation_for_sampling as(
 	    LAG(amt, 3) over (partition by card_num order by trans_date) as previous_amt_3,
 	    LAG(trans_date, 3) over (partition by card_num order by trans_date) as previous_date_3
 	from de12.buma_dwh_fact_transactions
+	where oper_type != 'DEPOSIT' and trans_date > (select max_update_dt from de12.buma_meta_fraud) - 20 * interval'1 minute'
 ),
 Type_4_sample as(
 	select
 	    card_num,
-	    trans_date 
+	    trans_date
 	from Type_4_data_preparation_for_sampling
 	where
 	    oper_result = 'SUCCESS'
 	    and previous_result_1 = 'REJECT'
 	    and previous_result_2 = 'REJECT'
 	    and previous_result_3 = 'REJECT'
-	    and previous_amt_3 > previous_amt_2 
+	    and previous_amt_3 > previous_amt_2
+	    and previous_amt_3 is not Null
 	    and previous_amt_2 > previous_amt_1
-	    and previous_amt_1 > amt 
+	    and previous_amt_2 is not Null
+	    and previous_amt_1 > amt
+	    and previous_amt_1 is not Null
 	    and extract(epoch FROM (trans_date - previous_date_3)/60) < 20
 ),
 Type_4 as(
