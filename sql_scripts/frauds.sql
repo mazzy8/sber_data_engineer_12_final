@@ -1,36 +1,36 @@
 with all_tables_for_T1_and_T2 as(
-  select *
-  from de12.buma_dwh_fact_transactions tran
-    left join de12.buma_dwh_dim_cards_hist card
-    on trim(tran.card_num) = trim(card.card_num)
-      left join de12.buma_dwh_dim_accounts_hist acc
-      on trim(card.account_num) = trim(acc.account_num)
-        left join de12.buma_dwh_dim_clients_hist cli
-        on acc.client = cli.client_id
-  where tran.trans_date > (select max_update_dt from de12.buma_meta_fraud)
+    select *
+    from de12.buma_dwh_fact_transactions tran
+        left join de12.buma_dwh_dim_cards_hist card
+        on trim(tran.card_num) = trim(card.card_num)
+            left join de12.buma_dwh_dim_accounts_hist acc
+            on trim(card.account_num) = trim(acc.account_num)
+                left join de12.buma_dwh_dim_clients_hist cli
+                on acc.client = cli.client_id
+    where tran.trans_date > (select max_update_dt from de12.buma_meta_fraud)
 ),
 Type_1 as(
-  select
-	allt.trans_date as event_dt,
+    select
+        allt.trans_date as event_dt,
 	allt.passport_num as passport,
 	concat(allt.last_name, ' ', allt.first_name, ' ', allt.patronymic) as fio,
 	allt.phone as phone,
 	1 event_type,
 	now()::date as report_dt
-  from all_tables_for_T1_and_T2 as allt
-  where lower(allt.oper_result) = 'success' and (allt.passport_num in (select bl.passport_num from de12.buma_dwh_fact_passport_blacklist bl ) or
-  allt.passport_num in (select passport_num from allt where passport_valid_to is not null and passport_valid_to < trans_date::date ))
+    from all_tables_for_T1_and_T2 as allt
+    where lower(allt.oper_result) = 'success' and (allt.passport_num in (select bl.passport_num from de12.buma_dwh_fact_passport_blacklist bl ) or
+    allt.passport_num in (select passport_num from allt where passport_valid_to is not null and passport_valid_to < trans_date::date ))
 ),
 Type_2 as (
-  select
+    select
 	allt.trans_date as event_dt,
 	allt.passport_num passport,
 	concat(allt.last_name, ' ', allt.first_name, ' ', allt.patronymic) as fio,
 	allt.phone as phone,
 	2 as event_type,
 	now()::date as report_dt
-  from all_tables_for_T1_and_T2 as allt
-  where valid_to < trans_date::date and lower(allt.oper_result) = 'success'
+    from all_tables_for_T1_and_T2 as allt
+    where valid_to < trans_date::date and lower(allt.oper_result) = 'success'
 ),
 Type_3_diff_city as(
     select
@@ -143,15 +143,15 @@ Type_4 as(
     			on accounts.client = clients.client_id
 )
 all_frauds as(
-  (select * from Type_1)
-  union
-  (select * from Type_2)
-  union
-  (select * from Type_3)
-  union
-  (select * from Type_4)
-)
+    (select * from Type_1)
+    union
+    (select * from Type_2)
+    union
+    (select * from Type_3)
+    union
+    (select * from Type_4)
+    )
 insert into de12.buma_rep_fraud
-	select * from all_frauds;
+    select * from all_frauds;
 update de12.buma_meta_fraud
 set max_update_dt = coalesce( (select max( transaction_date ) from de12.buma_stg_transactions ), max_update_dt);
