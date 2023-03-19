@@ -186,7 +186,7 @@ else:
         cursor_src.execute(f"select * from info.cards where create_dt > '{date_point}'::date or "
                            f"(update_dt is not Null and update_dt > '{date_point}'::date);")
         for record in cursor_src:
-            cursor_dwh.execute("INSERT INTO de12.buma_stg_cards VALUES(%s, %s, %s, %s)", record)
+            cursor_dwh.execute("INSERT INTO de12.buma_stg_cards VALUES(trim(%s), %s, %s, %s)", record)
         cursor_src.execute(f"select card_num from info.cards;")
         for record in cursor_src:
           cursor_dwh.execute("INSERT INTO de12.buma_stg_cards_del VALUES(%s)", record)
