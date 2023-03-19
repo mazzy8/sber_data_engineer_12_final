@@ -159,12 +159,14 @@ else:
                 df = get_data_from_exel(file)
                 cursor_dwh.executemany("INSERT INTO de12.buma_stg_terminals(terminal_id, terminal_type, terminal_city,"
                                        "terminal_address) VALUES( %s, %s, %s, %s)", df.values.tolist())
-            else:
+            elif 'transactions' in file:
                 df = pd.read_csv(file, delimiter=';')
                 cursor_dwh.executemany("INSERT INTO de12.buma_stg_transactions(transaction_id, transaction_date, "
                                        "amount, card_num, oper_type, oper_result, terminal) VALUES "
                                        "( %s, %s::timestamp, replace(%s, ',', '.')::decimal, %s, %s, %s, %s)",
                                        df.values.tolist())
+            else:
+                raise Exception
 
         logging.info(f"Загрузка данных из источника в STAGE:")
         logging.info(f"Заполнение de12.buma_stg_accounts и de12.buma_stg_accounts_del")

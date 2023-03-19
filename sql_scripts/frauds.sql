@@ -7,7 +7,7 @@ with all_tables_for_T1_and_T2 as(
             on card.account_num = acc.account_num
                 left join de12.buma_dwh_dim_clients_hist cli
                 on acc.client = cli.client_id
-    where tran.trans_date > (select max_update_dt from de12.buma_meta_fraud)
+    where tran.trans_date > (select min(transaction_date) from de12.buma_stg_transactions)
 ),
 Type_1 as(
     select
@@ -18,9 +18,8 @@ Type_1 as(
         1 event_type,
         now()::date as report_dt
     from all_tables_for_T1_and_T2 as allt
-    where lower(allt.oper_result) = 'success'
-        and (allt.passport_num in (select passport_num from de12.buma_dwh_fact_passport_blacklist)
-        or allt.passport_num in (select passport_num from all_tables_for_T1_and_T2 where passport_valid_to is not null and passport_valid_to < trans_date::date ))
+    where allt.passport_num in (select passport_num from de12.buma_dwh_fact_passport_blacklist)
+        or allt.passport_num in (select passport_num from all_tables_for_T1_and_T2 where passport_valid_to is not null and passport_valid_to < trans_date::date )
 ),
 Type_2 as (
     select
@@ -31,7 +30,7 @@ Type_2 as (
         2 as event_type,
         now()::date as report_dt
         from all_tables_for_T1_and_T2 as allt
-        where valid_to < trans_date::date and lower(allt.oper_result) = 'success'
+        where valid_to < trans_date::date
 ),
 Type_3_diff_city as(
     select
@@ -40,9 +39,8 @@ Type_3_diff_city as(
     from de12.buma_dwh_fact_transactions trans
 	    left join de12.buma_dwh_dim_terminals_hist term
 	    on trans.terminal = term.terminal_id
-	where trans.oper_result = 'SUCCESS'
-		and term.terminal_city is not null
-		and trans.trans_date > (select max_update_dt from de12.buma_meta_fraud ) - 60 * interval'1 minute'
+	where term.terminal_city is not null
+		and trans.trans_date > (select min(transaction_date) from de12.buma_stg_transactions) - 60 * interval'1 minute'
     group by trans.card_num
     having count(distinct term.terminal_city) > 1
 ),
@@ -56,7 +54,7 @@ Type_3_trans_per_city as(
 	    on trans.card_num = df.card_num
     		left join de12.buma_dwh_dim_terminals_hist term
     		on trans.terminal = term.terminal_id
-    where trans.trans_date > (select max_update_dt from de12.buma_meta_fraud) - 60 * interval'1 minute'
+    where trans.trans_date > (select min(transaction_date) from de12.buma_stg_transactions) - 60 * interval'1 minute'
 ),
 Type_3_trans_last_and_current_city as(
     select
@@ -111,7 +109,7 @@ Type_4_data_preparation_for_sampling as(
 	    LAG(amt, 3) over (partition by card_num order by trans_date) as previous_amt_3,
 	    LAG(trans_date, 3) over (partition by card_num order by trans_date) as previous_date_3
 	from de12.buma_dwh_fact_transactions
-	where oper_type != 'DEPOSIT' and trans_date > (select max_update_dt from de12.buma_meta_fraud) - 20 * interval'1 minute'
+	where trans_date > (select min(transaction_date) from de12.buma_stg_transactions) - 20 * interval'1 minute'
 ),
 Type_4_sample as(
 	select
@@ -158,5 +156,3 @@ all_frauds as(
     )
 insert into de12.buma_rep_fraud
     select * from all_frauds;
-update de12.buma_meta_fraud
-set max_update_dt = coalesce( (select max( transaction_date ) from de12.buma_stg_transactions ), max_update_dt);

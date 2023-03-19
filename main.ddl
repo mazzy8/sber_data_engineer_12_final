@@ -75,12 +75,6 @@ values( 'info','accounts', to_timestamp('1899-01-01','YYYY-MM-DD')),
 	   ('info','cards', to_timestamp('1899-01-01','YYYY-MM-DD')
 );
 
-create table de12.buma_meta_fraud (max_update_dt timestamp(0));
-
-insert into de12.buma_meta_fraud ( max_update_dt )
-values( to_timestamp('2999-12-31','YYYY-MM-DD'));
-
-
 ----------------------------------------------------------------------------
 -- DETAIL
 
@@ -165,7 +159,6 @@ CREATE TABLE de12.buma_rep_fraud (
 --drop table de12.buma_stg_clients;
 --drop table de12.buma_stg_clients_del;
 --drop table de12.buma_meta_stg;
---drop table de12.buma_meta_fraud;
 --drop table de12.buma_dwh_dim_terminals_hist;
 --drop table de12.buma_dwh_dim_cards_hist;
 --drop table de12.buma_dwh_dim_accounts_hist;
@@ -184,7 +177,6 @@ CREATE TABLE de12.buma_rep_fraud (
 --delete from de12.buma_stg_clients;
 --delete from de12.buma_stg_clients_del;
 --delete from de12.buma_meta_stg;
---delete from de12.buma_meta_fraud;
 --delete from de12.buma_dwh_dim_terminals_hist;
 --delete from de12.buma_dwh_dim_cards_hist;
 --delete from de12.buma_dwh_dim_accounts_hist;
