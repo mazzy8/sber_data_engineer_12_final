@@ -79,7 +79,9 @@ Type_3 as(
         fr.trans_date as event_dt,
         clients.passport_num as passport,
         concat(clients.last_name, ' ', clients.first_name, ' ', clients.patronymic) as fio,
-        clients.phone
+        clients.phone,
+	3 as event_type,
+        now()::date as report_dt
     from Type_3_fraud fr
     	left join de12.buma_dwh_dim_cards_hist cards 
     	on fr.card_num = cards.card_num
