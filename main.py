@@ -189,7 +189,7 @@ else:
             cursor_dwh.execute("INSERT INTO de12.buma_stg_cards VALUES(trim(%s), %s, %s, %s)", record)
         cursor_src.execute(f"select card_num from info.cards;")
         for record in cursor_src:
-          cursor_dwh.execute("INSERT INTO de12.buma_stg_cards_del VALUES(%s)", record)
+          cursor_dwh.execute("INSERT INTO de12.buma_stg_cards_del VALUES(trim(%s))", record)
 
         logging.info(f"Заполнение de12.buma_stg_clients и de12.buma_stg_clients_del")
         cursor_dwh.execute("select max_update_dt from de12.buma_meta_stg "

@@ -2,9 +2,9 @@ with all_tables_for_T1_and_T2 as(
     select *
     from de12.buma_dwh_fact_transactions tran
         left join de12.buma_dwh_dim_cards_hist card
-        on trim(tran.card_num) = trim(card.card_num)
+        on tran.card_num = card.card_num
             left join de12.buma_dwh_dim_accounts_hist acc
-            on trim(card.account_num) = trim(acc.account_num)
+            on card.account_num = acc.account_num
                 left join de12.buma_dwh_dim_clients_hist cli
                 on acc.client = cli.client_id
     where tran.trans_date > (select max_update_dt from de12.buma_meta_fraud)
@@ -12,25 +12,27 @@ with all_tables_for_T1_and_T2 as(
 Type_1 as(
     select
         allt.trans_date as event_dt,
-	allt.passport_num as passport,
-	concat(allt.last_name, ' ', allt.first_name, ' ', allt.patronymic) as fio,
-	allt.phone as phone,
-	1 event_type,
-	now()::date as report_dt
+        allt.passport_num as passport,
+        concat(allt.last_name, ' ', allt.first_name, ' ', allt.patronymic) as fio,
+        allt.phone as phone,
+        1 event_type,
+        now()::date as report_dt
     from all_tables_for_T1_and_T2 as allt
-    where lower(allt.oper_result) = 'success' and (allt.passport_num in (select bl.passport_num from de12.buma_dwh_fact_passport_blacklist bl ) or
-    allt.passport_num in (select passport_num from allt where passport_valid_to is not null and passport_valid_to < trans_date::date ))
+    where lower(allt.oper_result) = 'success'
+        and (allt.passport_num in (select bl.passport_num from de12.buma_dwh_fact_passport_blacklist bl )
+        or allt.passport_num in (select passport_num from all_tables_for_T1_and_T2 where passport_valid_to is not null
+        and passport_valid_to < trans_date::date ))
 ),
 Type_2 as (
     select
-	allt.trans_date as event_dt,
-	allt.passport_num passport,
-	concat(allt.last_name, ' ', allt.first_name, ' ', allt.patronymic) as fio,
-	allt.phone as phone,
-	2 as event_type,
-	now()::date as report_dt
-    from all_tables_for_T1_and_T2 as allt
-    where valid_to < trans_date::date and lower(allt.oper_result) = 'success'
+        allt.trans_date as event_dt,
+        allt.passport_num passport,
+        concat(allt.last_name, ' ', allt.first_name, ' ', allt.patronymic) as fio,
+        allt.phone as phone,
+        2 as event_type,
+        now()::date as report_dt
+        from all_tables_for_T1_and_T2 as allt
+        where valid_to < trans_date::date and lower(allt.oper_result) = 'success'
 ),
 Type_3_diff_city as(
     select
@@ -39,7 +41,7 @@ Type_3_diff_city as(
     from de12.buma_dwh_fact_transactions trans
 	    left join de12.buma_dwh_dim_terminals_hist term 
 	    on trans.terminal = term.terminal_id
-	where trans.oper_result = 'SUCCESS'
+	where trans.oper_result = 'SUCCESS' and term.terminal_city is not Null
     group by trans.card_num
     having count(distinct term.terminal_city) > 1
 ),
@@ -58,20 +60,20 @@ Type_3_trans_last_and_current_city as(
     select
         card_num,
         terminal_city as current_city,
-        trans_date as current_city_date,
-        lag(terminal_city) over(partition by card_num order by
-        trans_date) as last_city,
-        lag(trans_date) over(partition by card_num order by
-        trans_date) as last_city_date
+        lead(terminal_city) over(partition by card_num order by trans_date) as second_city,
+        lead(trans_date) over(partition by card_num order by trans_date) as second_city_date,
+        lead(terminal_city, 2) over(partition by card_num order by trans_date) as third_city,
+        lead(trans_date, 2) over(partition by card_num order by trans_date) as third_city_date
     from Type_3_trans_per_city
 ),
-Type_3_fraud as( 
+Type_3_fraud as(
     select
         card_num,
-        min(current_city_date) as trans_date
+        min(third_city_date) as trans_date
     from Type_3_trans_last_and_current_city
-    where extract(epoch FROM (last_city_date - current_city_date)/60) < 60
-    and last_city != current_city
+    where extract(epoch FROM (third_city_date - second_city_date)/60) < 60
+    and current_city = second_city
+    and second_city != third_city
     group by card_num
 ),
 Type_3 as(
@@ -80,7 +82,7 @@ Type_3 as(
         clients.passport_num as passport,
         concat(clients.last_name, ' ', clients.first_name, ' ', clients.patronymic) as fio,
         clients.phone,
-	3 as event_type,
+	    3 as event_type,
         now()::date as report_dt
     from Type_3_fraud fr
     	left join de12.buma_dwh_dim_cards_hist cards 
@@ -89,7 +91,7 @@ Type_3 as(
     		on cards.account_num = accounts.account_num
     			left join de12.buma_dwh_dim_clients_hist clients 
     			on accounts.client = clients.client_id
-);
+),
 Type_4_data_preparation_for_sampling as(
   	select
 	    card_num,
@@ -97,20 +99,13 @@ Type_4_data_preparation_for_sampling as(
 	    oper_result,
 	    oper_type,
 	    amt,
-	    LAG(oper_result, 1) over (partition by card_num order by
-	    trans_date) as previous_result_1,
-	    LAG(oper_result, 2) over (partition by card_num order by
-	    trans_date) as previous_result_2,
-	    LAG(oper_result, 3) over (partition by card_num order by
-	    trans_date) as previous_result_3,
-	    LAG(amt, 1) over (partition by card_num order by
-	    trans_date) as previous_amt_1,
-	    LAG(amt, 2) over (partition by card_num order by
-	    trans_date) as previous_amt_2,
-	    LAG(amt, 3) over (partition by card_num order by
-	    trans_date) as previous_amt_3,
-	    LAG(trans_date, 3) over (partition by card_num order by
-	    trans_date) as previous_date_3
+	    LAG(oper_result, 1) over (partition by card_num order by trans_date) as previous_result_1,
+	    LAG(oper_result, 2) over (partition by card_num order by trans_date) as previous_result_2,
+	    LAG(oper_result, 3) over (partition by card_num order by trans_date) as previous_result_3,
+	    LAG(amt, 1) over (partition by card_num order by trans_date) as previous_amt_1,
+	    LAG(amt, 2) over (partition by card_num order by trans_date) as previous_amt_2,
+	    LAG(amt, 3) over (partition by card_num order by trans_date) as previous_amt_3,
+	    LAG(trans_date, 3) over (partition by card_num order by trans_date) as previous_date_3
 	from de12.buma_dwh_fact_transactions
 ),
 Type_4_sample as(
@@ -143,7 +138,7 @@ Type_4 as(
     		on cards.account_num = accounts.account_num
     			left join de12.buma_dwh_dim_clients_hist clients 
     			on accounts.client = clients.client_id
-)
+),
 all_frauds as(
     (select * from Type_1)
     union
