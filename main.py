@@ -161,8 +161,8 @@ else:
                                        "terminal_address) VALUES( %s, %s, %s, %s)", df.values.tolist())
             elif 'transactions' in file:
                 with open(file, 'r') as f:
-                  next(f)
-                  cur.copy_from(f, 'buma_stg_transactions', sep=';', columns=None)
+                    next(f)
+                    cursor_dwh.copy_from(f, 'buma_stg_transactions', sep=';', columns=None)
               
 #  very slow method
 #                 df = pd.read_csv(file, delimiter=';')

@@ -7,7 +7,7 @@ with all_tables_for_T1_and_T2 as(
             on card.account_num = acc.account_num
                 left join de12.buma_dwh_dim_clients_hist cli
                 on acc.client = cli.client_id
-    where tran.trans_date > (select min(transaction_date) from de12.buma_stg_transactions)
+    where tran.trans_date > (select min(transaction_date::timestamp) from de12.buma_stg_transactions)
 ),
 Type_1 as(
     select
@@ -40,7 +40,7 @@ Type_3_diff_city as(
 	    left join de12.buma_dwh_dim_terminals_hist term
 	    on trans.terminal = term.terminal_id
 	where term.terminal_city is not null
-		and trans.trans_date > (select min(transaction_date) from de12.buma_stg_transactions) - 60 * interval'1 minute'
+		and trans.trans_date > (select min(transaction_date::timestamp) from de12.buma_stg_transactions) - 60 * interval'1 minute'
     group by trans.card_num
     having count(distinct term.terminal_city) > 1
 ),
@@ -54,7 +54,7 @@ Type_3_trans_per_city as(
 	    on trans.card_num = df.card_num
     		left join de12.buma_dwh_dim_terminals_hist term
     		on trans.terminal = term.terminal_id
-    where trans.trans_date > (select min(transaction_date) from de12.buma_stg_transactions) - 60 * interval'1 minute'
+    where trans.trans_date > (select min(transaction_date::timestamp) from de12.buma_stg_transactions) - 60 * interval'1 minute'
 ),
 Type_3_trans_last_and_current_city as(
     select
@@ -109,7 +109,7 @@ Type_4_data_preparation_for_sampling as(
 	    LAG(amt, 3) over (partition by card_num order by trans_date) as previous_amt_3,
 	    LAG(trans_date, 3) over (partition by card_num order by trans_date) as previous_date_3
 	from de12.buma_dwh_fact_transactions
-	where trans_date > (select min(transaction_date) from de12.buma_stg_transactions) - 20 * interval'1 minute'
+	where trans_date > (select min(transaction_date::timestamp) from de12.buma_stg_transactions) - 20 * interval'1 minute'
 ),
 Type_4_sample as(
 	select
