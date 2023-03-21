@@ -83,16 +83,16 @@ create table de12.buma_dwh_dim_terminals_hist (
 	terminal_type varchar(4),
 	terminal_city varchar(20),
 	terminal_address varchar(100),
-	start_dt timestamp(0),
-	end_dt timestamp(0),
+	effective_from timestamp(0),
+	effective_to timestamp(0),
 	deleted_flg char
 );
 
 create table de12.buma_dwh_dim_cards_hist (
 	card_num varchar(20),
 	account_num varchar(20),
-	start_dt timestamp(0),
-	end_dt timestamp(0),
+	effective_from timestamp(0),
+	effective_to timestamp(0),
 	deleted_flg char
 );
 
@@ -100,8 +100,8 @@ create table de12.buma_dwh_dim_accounts_hist (
 	account_num varchar(20),
 	valid_to date,
 	client varchar(10),
-	start_dt timestamp(0),
-	end_dt timestamp(0),
+	effective_from timestamp(0),
+	effective_to timestamp(0),
 	deleted_flg char
 );
 
@@ -114,8 +114,8 @@ create table de12.buma_dwh_dim_clients_hist (
 	passport_num varchar(15),
 	passport_valid_to date,
 	phone varchar(16),
-	start_dt timestamp(0),
-	end_dt timestamp(0),
+	effective_from timestamp(0),
+	effective_to timestamp(0),
 	deleted_flg char
 );
 

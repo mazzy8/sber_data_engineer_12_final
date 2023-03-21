@@ -164,7 +164,7 @@ else:
                   next(f)
                   cur.copy_from(f, 'buma_stg_transactions', sep=';', columns=None)
               
-#  very slow
+#  very slow method
 #                 df = pd.read_csv(file, delimiter=';')
 #                 cursor_dwh.executemany("INSERT INTO de12.buma_stg_transactions(transaction_id, transaction_date, "
 #                                        "amount, card_num, oper_type, oper_result, terminal) VALUES "
