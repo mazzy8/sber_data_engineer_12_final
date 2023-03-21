@@ -160,11 +160,16 @@ else:
                 cursor_dwh.executemany("INSERT INTO de12.buma_stg_terminals(terminal_id, terminal_type, terminal_city,"
                                        "terminal_address) VALUES( %s, %s, %s, %s)", df.values.tolist())
             elif 'transactions' in file:
-                df = pd.read_csv(file, delimiter=';')
-                cursor_dwh.executemany("INSERT INTO de12.buma_stg_transactions(transaction_id, transaction_date, "
-                                       "amount, card_num, oper_type, oper_result, terminal) VALUES "
-                                       "( %s, %s::timestamp, replace(%s, ',', '.')::decimal, %s, %s, %s, %s)",
-                                       df.values.tolist())
+                with open(file, 'r') as f:
+                  next(f)
+                  cur.copy_from(f, 'buma_stg_transactions', sep=';', columns=None)
+              
+#  very slow
+#                 df = pd.read_csv(file, delimiter=';')
+#                 cursor_dwh.executemany("INSERT INTO de12.buma_stg_transactions(transaction_id, transaction_date, "
+#                                        "amount, card_num, oper_type, oper_result, terminal) VALUES "
+#                                        "( %s, %s::timestamp, replace(%s, ',', '.')::decimal, %s, %s, %s, %s)",
+#                                        df.values.tolist())
             else:
                 raise Exception
 
