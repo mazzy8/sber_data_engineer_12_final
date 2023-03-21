@@ -88,8 +88,9 @@ where client_id in (
 	left join de12.buma_stg_clients_del stg
 		on tgt.client_id = stg.client_id
 	where stg.client_id is Null
-	  and tgt.effective_to = to_date('2999-12-31','YYYY-MM-DD')
-      and tgt.deleted_flg = 'N');
+	  and tgt.effective_to = to_date('2999-12-31','YYYY-MM-DD'))
+and effective_to = to_date('2999-12-31','YYYY-MM-DD')
+and deleted_flg = 'N';
 update de12.buma_meta_stg
 set max_update_dt = coalesce(
 	(select

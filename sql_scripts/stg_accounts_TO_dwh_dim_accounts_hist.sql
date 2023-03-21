@@ -63,8 +63,9 @@ where account_num in (
 	left join de12.buma_stg_accounts_del stg
 		on tgt.account_num = stg.account
 	where stg.account is Null
-	  and tgt.effective_to = to_date('2999-12-31','YYYY-MM-DD')
-      and tgt.deleted_flg = 'N');
+	  and tgt.effective_to = to_date('2999-12-31','YYYY-MM-DD'))
+and effective_to = to_date('2999-12-31','YYYY-MM-DD')
+and deleted_flg = 'N';
 update de12.buma_meta_stg
 set max_update_dt = coalesce( 
 	(select 

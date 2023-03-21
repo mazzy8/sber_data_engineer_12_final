@@ -4,7 +4,7 @@ select
 	stg.terminal_type,
 	stg.terminal_city,
 	stg.terminal_address,
-	now()::date,
+	(select max(transaction_date) from de12.buma_stg_transactions)::date,
 	to_date('2999-12-31','YYYY-MM-DD'),
 	'N'
 from de12.buma_stg_terminals stg
@@ -110,7 +110,7 @@ select
 from de12.buma_stg_terminals stg
 inner join de12.buma_dwh_dim_terminals_hist tgt
 	on stg.terminal_id = tgt.terminal_id
-	and tgt.effective_to = (now() - interval '1 day')::date
+	and tgt.effective_to = (select max(transaction_date) from de12.buma_stg_transactions)::date - interval '1 day'
 	where stg.terminal_type <> tgt.terminal_type or ( stg.terminal_type is null and tgt.terminal_type is not null ) or ( stg.terminal_type is not null and tgt.terminal_type is null ) or
 		  stg.terminal_city <> tgt.terminal_city or ( stg.terminal_city is null and tgt.terminal_city is not null ) or ( stg.terminal_city is not null and tgt.terminal_city is null ) or
 		  stg.terminal_address <> tgt.terminal_address or ( stg.terminal_address is null and tgt.terminal_address is not null ) or ( stg.terminal_address is not null and tgt.terminal_address is null );
@@ -127,7 +127,7 @@ from de12.buma_dwh_dim_terminals_hist tgt
 left join de12.buma_stg_terminals stg
 	on tgt.terminal_id = stg.terminal_id
 where stg.terminal_id is null
-  and tgt.effective_to = to_date('2999-12-31','YYYY-MM-DD')
+  and tgt.effective_to::date = to_date('2999-12-31','YYYY-MM-DD')
   and tgt.deleted_flg = 'N';
 update de12.buma_dwh_dim_terminals_hist
 set
@@ -136,7 +136,10 @@ where terminal_id in (
 	select tgt.terminal_id
 	from de12.buma_dwh_dim_terminals_hist tgt
 	left join de12.buma_stg_terminals stg
-		on stg.terminal_id = tgt.terminal_id
+		on sgt.terminal_id = stg.terminal_id
 	where stg.terminal_id is Null
-and tgt.effective_to = to_date('2999-12-31','YYYY-MM-DD')
-and tgt.deleted_flg = 'N');
+    and tgt.effective_to = to_date('2999-12-31','YYYY-MM-DD')
+    and tgt.deleted_flg = 'N')
+and de12.buma_dwh_dim_terminals_hist.effective_to = to_date('2999-12-31','YYYY-MM-DD')
+and de12.buma_dwh_dim_terminals_hist.deleted_flg = 'N';
+
