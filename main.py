@@ -10,6 +10,8 @@ import requests
 
 
 # настройка логирования
+if not os.path.isdir("logs"):
+    os.mkdir("logs")
 logging.basicConfig(level=logging.INFO, filename=f"./logs/{datetime.now().date()}.log",
                     format="%(asctime)s %(levelname)s %(message)s")
 BOT_TOKEN = os.getenv('bot_token')
@@ -127,7 +129,7 @@ while check_and_get_files_to_download() is None:
         log_message = f"За отведенное время не обнаружены файлы с данными"
         processing_error_message(log_message)
         break
-    time.sleep(36000)
+    time.sleep(35400)
     logging.info(f"Повторная проверка файлов:")
 else:
     logging.info(f"Файлы обнаружены")
