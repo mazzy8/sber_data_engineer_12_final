@@ -13,7 +13,7 @@ on stg.terminal_id  = tgt.terminal_id
 where tgt.terminal_id is null;
 update de12.buma_dwh_dim_terminals_hist
 set
-	effective_to = (select max(transaction_date) from de12.buma_stg_transactions)::date - interval '1 day'
+	effective_to = (select max(transaction_date)::date from de12.buma_stg_transactions)::timestamp - interval '1 second'
 from (
 	select
 		stg.terminal_id
@@ -60,7 +60,7 @@ where stg.terminal_id is null
   and tgt.deleted_flg = 'N';
 update de12.buma_dwh_dim_terminals_hist
 set
-	effective_to = (select max(transaction_date) from de12.buma_stg_transactions)::date - interval '1 day'
+	effective_to = (select max(transaction_date)::date from de12.buma_stg_transactions)::timestamp - interval '1 second'
 where terminal_id in (
 	select tgt.terminal_id
 	from de12.buma_dwh_dim_terminals_hist tgt
