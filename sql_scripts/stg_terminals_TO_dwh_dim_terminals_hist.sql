@@ -39,7 +39,7 @@ select
 from de12.buma_stg_terminals stg
 inner join de12.buma_dwh_dim_terminals_hist tgt
 	on stg.terminal_id = tgt.terminal_id
-	and tgt.effective_to = (select max(transaction_date) from de12.buma_stg_transactions)::date - interval '1 day'
+	and tgt.effective_to = (select max(transaction_date)::date from de12.buma_stg_transactions)::timestamp - interval '1 second'
 	where stg.terminal_type <> tgt.terminal_type or ( stg.terminal_type is null and tgt.terminal_type is not null ) or ( stg.terminal_type is not null and tgt.terminal_type is null ) or
 		  stg.terminal_city <> tgt.terminal_city or ( stg.terminal_city is null and tgt.terminal_city is not null ) or ( stg.terminal_city is not null and tgt.terminal_city is null ) or
 		  stg.terminal_address <> tgt.terminal_address or ( stg.terminal_address is null and tgt.terminal_address is not null ) or ( stg.terminal_address is not null and tgt.terminal_address is null );
